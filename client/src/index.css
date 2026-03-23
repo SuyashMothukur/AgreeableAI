@@ -1,0 +1,49 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #f6f5f2;
+  --surface: #ffffff;
+  --border: #e2e0da;
+  --text: #1a1a18;
+  --muted: #5c5a54;
+  --accent: #2d6a4f;
+  --accent-soft: #d8f3dc;
+  --user-bubble: #e8f5e9;
+  --ai-bubble: #f1f0ec;
+  --danger: #9b2226;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: "DM Sans", system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
