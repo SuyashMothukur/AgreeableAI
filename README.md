@@ -23,7 +23,14 @@ npm start
 
 `npm start` and `npm run dev` are the same (both run the stack). To run only one side, use `npm run dev --prefix server` or `npm run dev --prefix client`.
 
-Set `OPENAI_API_KEY` in the environment (or a `server/.env` loaded manually — the server reads `process.env` only; export in the shell or use your process manager).
+Put your key in **`server/.env`** (recommended):
+
+```bash
+cp server/.env.example server/.env
+# Edit server/.env and set OPENAI_API_KEY=sk-...
+```
+
+The server loads `server/.env` automatically on startup. You can also export it in the shell instead: `export OPENAI_API_KEY=sk-...`.
 
 Optional:
 
