@@ -1,0 +1,18 @@
+# Deploy: https://dashboard.render.com → New → Blueprint → connect this repo.
+# After deploy, set OPENAI_API_KEY in the service Environment tab (sync: false below).
+# Free tier: SQLite is stored on ephemeral disk; sessions may be lost on restarts.
+# For durable SQLite, use a paid instance with a persistent disk and set DB_PATH.
+
+services:
+  - type: web
+    name: sentiment-alignment-study
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start --prefix server
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: OPENAI_API_KEY
+        sync: false

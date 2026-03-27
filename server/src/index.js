@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import path from "path";
+import { existsSync } from "fs";
 import { fileURLToPath } from "url";
 import cors from "cors";
 
@@ -245,7 +246,23 @@ function handleStats(req, res) {
 app.get("/stats", handleStats);
 app.get("/api/stats", handleStats);
 
+const clientDist = path.join(__dirname, "..", "..", "client", "dist");
+if (existsSync(clientDist)) {
+  app.use(express.static(clientDist));
+  app.get("*", (req, res, next) => {
+    if (req.method !== "GET" && req.method !== "HEAD") {
+      return next();
+    }
+    res.sendFile(path.join(clientDist, "index.html"));
+  });
+}
+
 const PORT = Number(process.env.PORT) || 3001;
 app.listen(PORT, () => {
-  console.log(`Sentiment Alignment API http://localhost:${PORT}`);
+  const base = `http://localhost:${PORT}`;
+  console.log(
+    existsSync(clientDist)
+      ? `Sentiment Alignment app ${base}`
+      : `Sentiment Alignment API ${base} (build the client with: npm run build)`
+  );
 });
