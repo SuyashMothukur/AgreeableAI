@@ -8,7 +8,7 @@ export default function ChatWindow({
   onInputChange,
   onSubmit,
   disabled,
-  locked,
+  timeUp,
   placeholder,
 }) {
   const scrollRef = useRef(null);
@@ -23,8 +23,8 @@ export default function ChatWindow({
       <div className="study-chat__head">
         <h2 className="study-chat__title">Live conversation</h2>
         <p className="study-chat__hint">
-          {locked
-            ? "Timer ended — input is locked. Moving to reflection."
+          {timeUp
+            ? "The timer has ended. You may continue chatting or finish when you're ready."
             : "Speak freely; the assistant responds in real time."}
         </p>
       </div>

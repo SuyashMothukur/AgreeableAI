@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { fetchScenario, sendChat, submitSession } from "../api.js";
-import { STUDY_DURATION_MS, STUDY_PHASE, POST_TIMER_TRANSITION_MS } from "./constants.js";
+import { STUDY_DURATION_MS, STUDY_PHASE } from "./constants.js";
 import { buildAnalysisReport } from "./buildAnalysisReport.js";
 import { useCountdown } from "./hooks/useCountdown.js";
 import ProgressSteps from "./components/ProgressSteps.jsx";
@@ -12,7 +12,7 @@ import EndSurveyForm from "./components/EndSurveyForm.jsx";
 
 function activeProgressStep(phase) {
   if (phase === STUDY_PHASE.START || phase === STUDY_PHASE.LOADING_SCENARIO) return 1;
-  if (phase === STUDY_PHASE.CHAT || phase === STUDY_PHASE.POST_TIMER) return 2;
+  if (phase === STUDY_PHASE.CHAT) return 2;
   return 3;
 }
 
@@ -28,11 +28,11 @@ export default function StudyExperience() {
   const [surveyError, setSurveyError] = useState(null);
   const [submittingSurvey, setSubmittingSurvey] = useState(false);
   const [analysisReport, setAnalysisReport] = useState(null);
+  const [timeUp, setTimeUp] = useState(false);
 
   const messagesRef = useRef([]);
   const scenarioRef = useRef(null);
   const sessionEchoRef = useRef(null);
-  const transitionTimerRef = useRef(null);
 
   useEffect(() => {
     messagesRef.current = messages;
@@ -45,29 +45,14 @@ export default function StudyExperience() {
   }, [sessionEcho]);
 
   const handleExpire = useCallback(() => {
-    setPhase(STUDY_PHASE.POST_TIMER);
-    if (transitionTimerRef.current) window.clearTimeout(transitionTimerRef.current);
-    transitionTimerRef.current = window.setTimeout(() => {
-      const report = buildAnalysisReport({
-        scenario: scenarioRef.current,
-        messages: messagesRef.current,
-        sessionEcho: sessionEchoRef.current,
-      });
-      setAnalysisReport(report);
-      setPhase(STUDY_PHASE.ANALYSIS);
-      transitionTimerRef.current = null;
-    }, POST_TIMER_TRANSITION_MS);
+    setTimeUp(true);
   }, []);
 
   const { remainingMs, start, stop, resetCompleted } = useCountdown(handleExpire);
 
-  useEffect(
-    () => () => {
-      if (transitionTimerRef.current) window.clearTimeout(transitionTimerRef.current);
-      stop();
-    },
-    [stop]
-  );
+  useEffect(() => () => {
+    stop();
+  }, [stop]);
 
   const beginSession = useCallback(async () => {
     setLoadError(null);
@@ -79,6 +64,7 @@ export default function StudyExperience() {
       setMessages([]);
       setSessionEcho(null);
       setInput("");
+      setTimeUp(false);
       resetCompleted();
       start(STUDY_DURATION_MS);
       setPhase(STUDY_PHASE.CHAT);
@@ -92,7 +78,6 @@ export default function StudyExperience() {
     async (e) => {
       e.preventDefault();
       if (phase !== STUDY_PHASE.CHAT || !sessionId || !input.trim() || sending) return;
-      if (remainingMs <= 0) return;
       const text = input.trim();
       setSending(true);
       setLoadError(null);
@@ -115,14 +100,24 @@ export default function StudyExperience() {
 
   const hasUserMessage = messages.some((m) => m.role === "user");
 
-  const goToSurvey = useCallback(() => {
+  // const goToSurvey = useCallback(() => {
+  //   setSurveyError(null);
+  //   setPhase(STUDY_PHASE.END_SURVEY);
+  // }, []);
+
+  const finishChat = useCallback(() => {
+    const report = buildAnalysisReport({
+      scenario: scenarioRef.current,
+      messages: messagesRef.current,
+      sessionEcho: sessionEchoRef.current,
+    });
     setSurveyError(null);
     setPhase(STUDY_PHASE.END_SURVEY);
   }, []);
 
-  const backToAnalysis = useCallback(() => {
-    setPhase(STUDY_PHASE.ANALYSIS);
-  }, []);
+  // const backToAnalysis = useCallback(() => {
+  //   setPhase(STUDY_PHASE.ANALYSIS);
+  // }, []);
 
   const handleSurveySubmit = useCallback(
     async (survey) => {
@@ -151,6 +146,7 @@ export default function StudyExperience() {
     setSessionEcho(null);
     setAnalysisReport(null);
     setInput("");
+    setTimeUp(false);
     setLoadError(null);
     setSurveyError(null);
     setPhase(STUDY_PHASE.START);
@@ -173,11 +169,13 @@ export default function StudyExperience() {
           <ScenarioChatScreen
             scenario={scenario}
             remainingMs={remainingMs}
+            timeUp={timeUp}
             messages={messages}
             sending={sending}
             input={input}
             onInputChange={setInput}
             onSend={handleSend}
+            onFinishChat={finishChat}
             sessionReady={Boolean(sessionId)}
           />
           {loadError && (
@@ -188,21 +186,14 @@ export default function StudyExperience() {
         </>
       )}
 
-      {phase === STUDY_PHASE.POST_TIMER && (
-        <TransitionOverlay
-          message="Time is up."
-          submessage="Preparing reflection analysis from your conversation…"
-        />
-      )}
-
-      {phase === STUDY_PHASE.ANALYSIS && analysisReport && <AnalysisScreen report={analysisReport} onContinue={goToSurvey} />}
+      {/* {phase === STUDY_PHASE.ANALYSIS && analysisReport && <AnalysisScreen report={analysisReport} onContinue={goToSurvey} />} */}
 
       {phase === STUDY_PHASE.END_SURVEY && (
         <EndSurveyForm
           onSubmit={handleSurveySubmit}
           submitting={submittingSurvey}
           error={surveyError}
-          onBack={backToAnalysis}
+          onBack={() => setPhase(STUDY_PHASE.CHAT)}
           canSubmit={hasUserMessage}
           onRestart={restartStudy}
         />

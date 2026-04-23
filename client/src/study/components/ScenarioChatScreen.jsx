@@ -5,14 +5,15 @@ import ChatWindow from "./ChatWindow.jsx";
 export default function ScenarioChatScreen({
   scenario,
   remainingMs,
+  timeUp,
   messages,
   sending,
   input,
   onInputChange,
   onSend,
+  onFinishChat,
   sessionReady,
 }) {
-  const locked = remainingMs <= 0;
 
   return (
     <div className="study-chat-screen study-screen study-screen--enter">
@@ -21,10 +22,19 @@ export default function ScenarioChatScreen({
           <p className="study-eyebrow">Step 2 · Timed conversation</p>
           <h1 className="study-chat-screen__title">Active scenario</h1>
           <p className="study-chat-screen__subtitle">
-            Focus on the scenario and the assistant. Reflection unlocks automatically when the timer completes.
+            Focus on the scenario and the assistant. When the timer ends, you can either keep chatting or finish and continue.
           </p>
         </div>
-        <CountdownTimer remainingMs={remainingMs} />
+        {!timeUp ? (
+          <CountdownTimer remainingMs={remainingMs} />
+        ) : (
+          <button
+            className="study-btn study-btn--primary study-btn--lg"
+            onClick={onFinishChat}
+          >
+            Continue to survey
+          </button>
+        )}
       </header>
 
       <div className="study-chat-screen__body">
@@ -38,9 +48,13 @@ export default function ScenarioChatScreen({
             input={input}
             onInputChange={onInputChange}
             onSubmit={onSend}
-            disabled={!sessionReady || sending || locked}
-            locked={locked}
-            placeholder={locked ? "Session locked after timer" : "Share what feels most salient for you…"}
+            disabled={!sessionReady || sending}
+            timeUp={timeUp}
+            placeholder={
+              timeUp
+                ? "The timer has ended, but you can keep chatting if you'd like…"
+                : "Share what feels most salient for you…"
+            }
           />
         </div>
       </div>

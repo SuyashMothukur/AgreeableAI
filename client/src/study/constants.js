@@ -1,5 +1,5 @@
 /** Five-minute scenario session */
-export const STUDY_DURATION_MS = 5 * 60 * 1000;
+export const STUDY_DURATION_MS = 2 * 60 * 1000;
 
 /** Brief overlay before analysis */
 export const POST_TIMER_TRANSITION_MS = 2400;

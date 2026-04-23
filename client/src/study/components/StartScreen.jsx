@@ -10,7 +10,7 @@ export default function StartScreen({ onStart, loading, error }) {
           can study how emotional signals and assistant responses line up.
         </p>
         <p className="study-start__note">
-          You will receive <strong>one scenario</strong> and <strong>five minutes</strong> to respond. When the timer
+          You will receive <strong>one scenario</strong> and <strong>two minutes</strong> to respond. When the timer
           ends, the session advances automatically to a structured reflection screen.
         </p>
         {error && <div className="study-banner study-banner--error">{error}</div>}
