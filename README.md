@@ -1,60 +1,26 @@
-# Sentiment Alignment Study (MVP)
+# AgreeableAI
 
-Full-stack prototype for controlled experiments comparing **user-reported support** with **heuristic sentiment alignment** between user messages and assistant replies.
-
-## Stack
-
-- **Frontend:** React (Vite), minimal CSS
-- **Backend:** Node.js, Express
-- **LLM:** OpenAI Chat Completions (`OPENAI_API_KEY`), with placeholder responses if unset
-- **Storage:** SQLite (`server/data/sessions.db`)
+**Goal:** Run short chat sessions where people talk to an assistant, then report how supported they felt. The app compares that self-report to an automatic “sentiment alignment” score between what they said and how the assistant replied—so you can study whether **felt support** matches **measured alignment**, and how different assistant styles change both.
 
 ## Run locally
-
-From the repo root, install dependencies once, then start the API and UI together:
 
 ```bash
 npm install
 npm start
 ```
 
-- API: [http://localhost:3001](http://localhost:3001)
-- App: [http://localhost:5173](http://localhost:5173)
+`npm start` runs API and UI together. For one side only: `npm run dev --prefix server` or `npm run dev --prefix client`.
 
-`npm start` and `npm run dev` are the same (both run the stack). To run only one side, use `npm run dev --prefix server` or `npm run dev --prefix client`.
+- App: [http://localhost:5173](http://localhost:5173)  
+- API: [http://localhost:3001](http://localhost:3001)  
+- After sessions are submitted, see aggregates at [http://localhost:5173/dashboard](http://localhost:5173/dashboard)
 
-Put your key in **`server/.env`** (recommended):
+For real model replies, add `server/.env` with `OPENAI_API_KEY=sk-...` (or export it in your shell). Without a key, the server uses placeholders.
 
-```bash
-cp server/.env.example server/.env
-# Edit server/.env and set OPENAI_API_KEY=sk-...
-```
+Optional: `OPENAI_MODEL` (default `gpt-4o-mini`), `REVEAL_MODE_TO_CLIENT=1` to expose the assistant mode to the UI, `DB_PATH`, `PORT`.
 
-The server loads `server/.env` automatically on startup. You can also export it in the shell instead: `export OPENAI_API_KEY=sk-...`.
+## What’s in the box
 
-Optional:
+React (Vite) UI, Node/Express API, OpenAI chat completions, and SQLite for sessions. Each session picks a scenario and a hidden “mode” (supportive, neutral, or challenging) so you can compare outcomes without participants seeing the label.
 
-- `OPENAI_MODEL` — default `gpt-4o-mini`
-- `REVEAL_MODE_TO_CLIENT=1` — include assigned behavior mode in `GET /scenario` (normally hidden for blind studies)
-- `DB_PATH` — custom SQLite file path
-
-## API
-
-| Method | Path | Description |
-|--------|------|---------------|
-| GET | `/scenario` | New session: random scenario + random mode (mode omitted unless `REVEAL_MODE_TO_CLIENT=1`) |
-| POST | `/chat` | `{ sessionId, content }` → assistant reply |
-| POST | `/submit` | `{ sessionId, survey }` → persist session + survey + disparity label |
-| GET | `/stats` | Aggregate alignment % and avg satisfaction by mode |
-
-Duplicate `/api/*` routes exist for convenience.
-
-## Behavior modes (stored, not shown to participants)
-
-- **supportive** — mirror tone, validate
-- **neutral** — balanced, low arousal
-- **challenging** — gentle pushback
-
-## Dashboard
-
-Open [http://localhost:5173/dashboard](http://localhost:5173/dashboard) for simple aggregates after sessions are submitted.
+REST endpoints: `/scenario`, `/chat`, `/submit`, `/stats`—duplicated under `/api/*`.
